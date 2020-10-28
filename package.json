@@ -1,0 +1,18 @@
+{
+  "name": "iochat",
+  "version": "1.0.0",
+  "description": "Chat application",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sami Mustonen",
+  "license": "ISC",
+  "dependencies": {
+    "express": "*",
+    "mongodb": "^2.2.30",
+    "body-parser": "^1.19.0",
+    "mongoose": "^5.9.4",
+    "socket.io": "*"
+  }
+}

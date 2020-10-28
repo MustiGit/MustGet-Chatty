@@ -1,0 +1,177 @@
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+    <title>MustGet Chat</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            margin-top: 30px;
+        }
+        .container{
+            border-style: solid;
+            border-width: 2px;
+            border-color:  #9acecf;
+        }
+
+        #messageArea {
+            display: none;
+        }
+
+        .header {
+            margin-top: 5px;
+            padding: 2px;
+            text-align: center;
+            background: #9acecf;
+            color: white;
+        }
+
+        p.italic {
+            font-style: italic;
+            font-size: 1vw;
+        }
+
+        h1 {
+            font-size: 3vw;
+        }
+
+        .messageArea {
+            height: 100%;
+            padding-bottom: 60px;
+        }
+
+        .chat {
+            height: 60%;
+            margin: 0;
+            overflow-y: auto;
+            padding: 0px 20px 10px 5px;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MustGet Chatty</h1>
+            <p class="italic">Meeting place for loners and wanderers </p>
+        </div>
+        <br />
+        <div id="userFormArea" class="row">
+            <div class="col-md-3" vertical-align = "middle">
+                <form id="userForm">
+                    <div class="form-group" align = "center">
+                        <label>Please enter your username.</label>
+                        <input class="form-control" id="username" maxlength="15" placeholder = "Max 15 characters"/>
+                        <br />
+                        <input type="submit" class="btn btn-primary" value="Login" />
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="messageArea" class="row">
+            <div class="col-md-3">
+                <div class="well well-sm">
+                    <h3> Currently Online:</h3>
+                    <ul class="list-group" id="users"></ul>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="chat" id="chat"></div>
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label>Enter Message</label>
+                        <input class="form-control" id="message" placeholder="Type here..." />
+                        <br />
+                        <input type="submit" class="btn btn-primary" value="Send Message" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            var socket = io.connect();
+            var $messageForm = $('#messageForm');
+            var $message = $('#message');
+            var $chat = $('#chat');
+            var $messageArea = $('#messageArea');
+            var $userFormArea = $('#userFormArea');
+            var $userForm = $('#userForm');
+            var $users = $('#users');
+            var $username = $('#username');
+
+            $messageForm.submit(function (e) {
+                e.preventDefault();
+                socket.emit('send message', $message.val());
+
+                $message.val('');
+            });
+
+            socket.on('new message', function (data) {
+
+                $chat.append('<div class ="well well-sm"><strong>' + data.user + '</strong>: ' + data.msg + '</div>');
+                 
+                $('#chat').scrollTop($('#chat')[0].scrollHeight);
+
+                sendUser = data.user;
+                sendMessage = data.msg;
+                sendMessage.trimStart();
+
+                //console.log(sendMessage);
+                //console.log(sendUser);
+
+                var sendMessage = {
+                    username: sendUser,
+                    message: sendMessage,
+                }
+
+                axios.post('http://localhost:3000/message/', sendMessage)
+                    .then(function (response) {
+                        console.log(response.data)
+                        console.log("Response = ", response.status)
+                    })
+                    .catch(function (error) {
+                        document.querySelector("#errors").innerHTML = error.response.data
+                        console.log(error.response)
+
+                    });
+            });
+
+            $userForm.submit(function (e) {
+                e.preventDefault();
+                socket.emit('new user', $username.val(), function (data) {
+                    if (data) {
+                        $userFormArea.hide();
+                        $messageArea.show();
+                    }
+                });
+                $username.val('');
+            })
+
+            socket.on('get users', function (data) {
+                var html = '';
+                for (i = 0; i < data.length; i++) {
+                    html += '<li class ="list-group-item">' + data[i] + '</li>';
+                }
+                $users.html(html);
+            })
+
+           $('.list-group').on('click', '.list-group-item', function (event) {
+                event.preventDefault();
+                $(this).addClass('active').siblings().removeClass('active');
+            });
+
+
+
+        });
+    </script>
+</body>
+
+</html>
