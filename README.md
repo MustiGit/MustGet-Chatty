@@ -1,4 +1,4 @@
 # MustGet-Chatty
- Small chatting program. Messages are saved in MongoDB.
+Small chatting program. Messages are saved in MongoDB.
 
-JavaScript, socket.io, Axios, Mongoose, MongoDB
+HTML, JavaScript, Socket.io, Axios, Mongoose, MongoDB
